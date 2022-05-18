@@ -1,6 +1,6 @@
-# BAME Climate Experiences Survey (2022)
+# Spotlight Report Analysis Code (2022)
 
-This repository contains R code, documentation and data related to the climate experiences project survey of BAME UK residents on their experience of climate change.
+This repository contains R code, documentation and data related to a survey of BAME UK residents on their experience of climate change. This code and underlying data subsets have been used to generate visualisations for the Spotlight report.
 
 ## Why Reproducible Research?
 
