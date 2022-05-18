@@ -76,17 +76,18 @@ set_flextable_defaults(font.size = 10,
 
 # Set up paths in case they haven't already been created
 
-if (dir.exists("data") == FALSE) {
-  dir.create("data") 
+if (dir.exists(here("gits", "spotlight-report", "data")) == FALSE) {
+  dir.create(here("gits", "spotlight-report", "data")) 
 }
 
 # Note, these two paths are excluded from github as it is best practice in reproducible research for end-user to generate their own
 
-if (dir.exists("figures") == FALSE) {
-  dir.create("figures") 
+if (dir.exists(here("gits", "spotlight-report", "figures")) == FALSE) {
+  dir.create(here("gits", "spotlight-report", "figures"))
 }
-if (dir.exists("derivedData") == FALSE) {
-  dir.create("derivedData")
+
+if (dir.exists(here("gits", "spotlight-report", "derivedData")) == FALSE) {
+  dir.create(here("gits", "spotlight-report", "derivedData"))
 }
 
 ## Reusable Functions ------------------------------------------------------
@@ -494,7 +495,6 @@ climate_experience_data_named <- climate_experience_data_named %>%
   )
 
 
-
 # Generate new column with simplified postcode area data (only initial alpha characters)
 climate_experience_data_named$postcode_area <- str_to_upper(str_extract(climate_experience_data_named$Q68, "^([A-Z,a-z]){1,}"))
 climate_experience_data$postcode_area <- str_to_upper(str_extract(climate_experience_data_named$Q68, "^([A-Z,a-z]){1,}"))
@@ -543,16 +543,23 @@ climate_experience_data <- climate_experience_data %>%
 # Abstract data to postcode region and drop columns with identifiable information
 
 # 1. Import and clean postcodes non-geocoded data
-# uk_postcodes <- read.csv("/Users/kidwellj/Downloads/pcluts_2020feb\ 2/ONSPD_FEB_2020_UK.csv")
-# TODO: add lsoa for deprivation lookups
-# uk_postcodes_simple <- select(uk_postcodes, pcd, oa11, lsoa11, lat, long)
-# write.csv(uk_postcodes_simple, "derivedData/uk_postcodes_simple.csv", row.names=FALSE)
+# uk_postcodes <- read.csv(here("gits", "spotlight-report", "data", "gis", "ONSPD_FEB_2020_UK.csv"))
+## TODO: add lsoa for deprivation lookups
+#uk_postcodes_simple <- select(uk_postcodes, pcd, oa11, lsoa11, lat, long)
+#write.csv(uk_postcodes_simple, here("gits", "spotlight-report", "data", "gis", "uk_postcodes_simple.csv"), row.names=FALSE)
 
-uk_postcodes_simple <- read.csv("./derivedData/uk_postcodes_simple.csv")
-imd2019 <- read.csv("./data/gis/File_7_-_All_IoD2019_Scores__Ranks__Deciles_and_Population_Denominators_3.csv")
-uk_ur2 <- read.csv("./derivedData/urban_rural_2fold.csv")
+uk_postcodes_simple <- read.csv(here("gits", "spotlight-report", "data", "gis", "uk_postcodes_simple.csv"))
+imd2019 <- read.csv(here("gits", "spotlight-report", "data", "gis", "File_7_-_All_IoD2019_Scores__Ranks__Deciles_and_Population_Denominators_3.csv"))
 
-postcode_data <- climate_experience_data_named$Q68
+# Previous work to clean dataset
+# urban_rural_2fold <- read_excel(here("gits", "spotlight-report", "data", "gis", "rural_urban2_uk_simplified.xlsx"))
+# urban_rural_2fold$ur2 <- gsub("1", "Urban", urban_rural_2fold$ur2)
+# urban_rural_2fold$ur2 <- gsub("2", "Rural", urban_rural_2fold$ur2)
+# write.csv(urban_rural_2fold, here("gits", "spotlight-report", "derivedData", "urban_rural_2fold.csv"))
+
+uk_ur2 <- read.csv(here("gits", "spotlight-report", "derivedData", "urban_rural_2fold.csv"))
+
+postcode_data <- climate_experience_data$Q68
 postcode_data_cleaned <- clean_postcodes(postcode_data)
 postcode_data_cleaned <- select(postcode_data_cleaned, input_pcode, output_pcode)
 names(postcode_data_cleaned) <- c("original_pcd", "pcd")
@@ -567,6 +574,7 @@ imd2019_renamed <- rename(imd2019, lsoa11 = LSOA.code..2011.)
 postcode_data_merged2 <- list(postcode_data_merged1, imd2019_renamed) %>% reduce(inner_join, by='lsoa11')
 
 # additional inner join on datasets to merge in urban_rural data
+uk_ur2 <- rename(uk_ur2, lsoa11 = lsoa)
 postcode_data_merged_ur2 <- list(postcode_data_merged2, uk_ur2) %>% reduce(inner_join, by='lsoa11')
 
 ur2_data <- as.data.frame(postcode_data_merged_ur2$ur2)
@@ -581,10 +589,6 @@ ur2_data_sums <- ur2_data %>%
 # add new column with percentages for each sum
 sums <- sums %>% 
   dplyr::mutate(perc = scales::percent(n / sum(n), accuracy = 1, trim = FALSE))
-
-educational_attainment_plot <- plot_horizontal_bar(educational_attainment)
-educational_attainment_plot <- educational_attainment_plot + labs(caption = "Respondent Edcational Attainment", x = "", y = "")
-educational_attainment_plot
 
 # merge joined subset with entire dataset
 postcode_data_merged2 <- rename(postcode_data_merged2, Q68 = original_pcd)
@@ -638,16 +642,15 @@ map1 <- tm_shape(local_authorities) +
 map1
 
 # save image
-tmap_save(map1, "figures/map.png", width=1920, height=1080, asp=0)
-tmap_save(map1, "figures/map.html")
+tmap_save(map1, here("gits", "spotlight-report", "figures", "map.png"), width=1920, height=1080, asp=0)
+tmap_save(map1, here("gits", "spotlight-report", "figures", "map.html"))
 # st_write(local_authorities_clipped, "./derivedData/", "test_clipping2.shp", driver="ESRI Shapefile")
 
 ## Working with country codes ----------------------------------------------
 
-climate_experience_data_named$Q62_1_TEXT
-climate_experience_data_named$Q62_iso <- countrycode(climate_experience_data_named$Q62_1_TEXT, origin = 'country.name', destination = 'iso3c', origin_regex = TRUE)
-climate_experience_data_named$country_name <- countrycode(climate_experience_data_named$Q62_iso, origin = 'iso3c', destination = 'country.name', origin_regex = TRUE)
-climate_experience_data_named$Q62_region <- countrycode(climate_experience_data_named$Q62_iso, origin = 'iso3c', destination = 'un.region.name')
+climate_experience_data$Q62_iso <- countrycode(climate_experience_data$Q62_1_TEXT, origin = 'country.name', destination = 'iso3c', origin_regex = TRUE)
+climate_experience_data$country_name <- countrycode(climate_experience_data$Q62_iso, origin = 'iso3c', destination = 'country.name', origin_regex = TRUE)
+climate_experience_data$Q62_region <- countrycode(climate_experience_data$Q62_iso, origin = 'iso3c', destination = 'un.region.name')
 
 
 ## Generate choropleth map of the countries of non-UK born respondents--------
@@ -677,7 +680,7 @@ ggplot() +
         ,axis.ticks = element_blank()
         ,legend.position = "none"
   )
-ggsave("./figures/q62_country_born.png", width = 20, height = 10, units = "cm")
+ggsave(here("gits", "spotlight-report", "figures", "q62_country_born.png"), width = 20, height = 10, units = "cm")
 
 
 ## Figure 2. Beliefs about reality and cause of climate change ----------------------------------------
