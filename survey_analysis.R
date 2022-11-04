@@ -7,7 +7,6 @@ require(devtools)
 require(usethis)
 require(likert)       # Used for likert data visualisation
 require(RColorBrewer)
-library(colortools) # using to generate colours specifically calibrated for print
 require(scales)       # Used for adding percentages to bar charts
 library(ggthemes)
 library(hrbrthemes) # Used for ipsum theme etc.
@@ -91,6 +90,199 @@ if (dir.exists(here("gits", "spotlight-report", "derivedData")) == FALSE) {
 }
 
 ## Reusable Functions ------------------------------------------------------
+
+# Importing code for colortools() now deprecated and removed from CRAN here. Some minor modifications to update code, but generally all credit here goes to Gaston Sanchez
+
+setColors <- function(color, num) {
+  # convert to RGB
+  rgb_col = col2rgb(color)
+  # convert to HSV
+  hsv_col = rgb2hsv(rgb_col)[,1]
+  # get degree
+  hue = hsv_col[1]
+  sat = hsv_col[2]
+  val = hsv_col[3]
+  cols = seq(hue, hue + 1, by=1/num)
+  cols = cols[1:num]
+  cols[cols > 1] <- cols[cols > 1] - 1
+  # get colors with hsv
+  colors = hsv(cols, sat, val)
+  # transparency
+  if (substr(color, 1, 1) == "#" && nchar(color) == 9)
+    ({
+      alpha = substr(color, 8, 9)
+      colors = paste(colors, alpha, sep="")
+    })
+  colors
+}
+
+complementary <- function(color, plot=TRUE, bg="white", labcol=NULL, cex=0.8, title=TRUE) {	
+  tmp_cols = setColors(color, 12)
+  comp_colors <- tmp_cols[c(1, 7)]
+  
+  # plot
+  if (plot)
+    ({
+      # labels color
+      if (is.null(labcol)) 
+        ({
+          lab_col = rep("", 12)
+          if (mean(col2rgb(bg)) > 127)
+            ({
+              lab_col[c(1, 7)] <- "black"
+              lab_col[c(2:6,8:12)] <- col2HSV(bg)
+            }) else ({
+              lab_col[c(1, 7)] <- "white"
+              lab_col[c(2:6,8:12)] <- col2HSV(bg)
+            })
+        }) else ({
+          lab_col = rep(labcol, 12)
+          if (mean(col2rgb(bg)) > 127)
+            ({
+              lab_col[c(1, 7)] <- labcol
+              lab_col[c(2:6,8:12)] <- col2HSV(bg)
+            }) else ({
+              lab_col[c(1, 7)] <- labcol
+              lab_col[c(2:6,8:12)] <- col2HSV(bg)
+            })
+        })	
+      # hide non-adjacent colors
+      tmp_cols[c(2:6,8:12)] <- paste(substr(tmp_cols[c(2:6,8:12)],1,7), "0D", sep="")
+      pizza(tmp_cols, labcol=lab_col, bg=bg, cex=cex)
+      # title
+      if (title)
+        title(paste("Complementary (opposite) color of: ", tmp_cols[1]), 
+              col.main=lab_col[1], cex.main=0.8)
+    })
+  # result
+  comp_colors
+}
+
+sequential <- function(color, percentage=5, what="saturation", s=NULL, v=NULL, alpha=NULL, fun="linear", plot=TRUE, verbose=TRUE)  {
+  # convert to HSV
+  col_hsv = rgb2hsv(col2rgb(color))[,1]
+  # transparency
+  if (is.null(alpha))
+    alpha = 1
+  if (substr(color, 1, 1) == "#" && nchar(color) == 9)
+    alpha = substr(color, 8, 9)
+  # get hue, saturation, and value
+  hue = col_hsv[1]
+  if (is.null(s)) s = col_hsv[2]
+  if (is.null(v)) v = col_hsv[3]
+  # sequence function
+  getseq = switch(fun, 
+                  linear = seq(0, 1, by=percentage/100),
+                  sqrt = sqrt(seq(0, 1, by=percentage/100)),
+                  log = log1p(seq(0, 1, by=percentage/100)),
+                  log10 = log10(seq(0, 1, by=percentage/100))
+  )
+  # what type of sequence?
+  if (what == "saturation") ({
+    sat = getseq
+    fixed = paste("v=", round(v,2), " and alpha=", alpha, sep="")
+    if (is.numeric(alpha))
+      seq_col = hsv(hue, s=sat, v=v, alpha=alpha)
+    if (is.character(alpha)) ({
+      seq_col = hsv(hue, s=sat, v=v)
+      seq_col = paste(seq_col, alpha, sep="")
+    })
+  })
+  if (what == "value") ({
+    val = getseq
+    fixed = paste("s=", round(s,2), " and alpha=", alpha, sep="")
+    if (is.numeric(alpha))
+      seq_col = hsv(hue, s=s, v=val, alpha=alpha)
+    if (is.character(alpha)) ({
+      seq_col = hsv(hue, s=s, v=val)
+      seq_col = paste(seq_col, alpha, sep="")
+    })
+  })
+  if (what == "alpha") ({
+    alpha = getseq
+    fixed = paste("s=", round(s,2), " and v=", round(v,2), sep="")
+    seq_col = hsv(hue, s=s, v=v, alpha=alpha)
+  })
+  # if plot TRUE
+  if (plot)
+    ({
+      n = length(seq(0, 1, by=percentage/100))
+      fx = unlist(fixed)
+      #dev.new()
+      plot(0, 0, type="n", xlim=c(0,1), ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+      rect(0:(n-1)/n, 0, 1:n/n, 1, col=seq_col, border="lightgray")
+      mtext(seq_col, side=1, at=0.5:(n)/n, cex=0.8, las=2)
+      title(paste("Sequential colors based on ", what, "\n with fixed ", fx, sep=""),
+            cex.main=0.9)
+    })
+  # result
+  if (verbose)
+    seq_col
+}
+
+wheel <- function(color, num=12, bg="gray95", border=NULL, init.angle=105, cex=1, lty=NULL, main=NULL, verbose=TRUE, ...) {
+  if (!is.numeric(num) || any(is.na(num) | num < 0)) 
+    stop("\n'num' must be positive")
+  x <- rep(1, num)
+  x <- c(0, cumsum(x)/sum(x))
+  dx <- diff(x)
+  nx <- length(dx)
+  # set colors
+  col = setColors(color, num)
+  labels = col
+  # labels color
+  labcol = ifelse( mean(col2rgb(bg)) > 127, "black", "white")
+  # prepare plot window
+  par(bg = bg)
+  plot.new()
+  pin <- par("pin")
+  xlim <- ylim <- c(-1, 1)
+  if (pin[1L] > pin[2L]) 
+    xlim <- (pin[1L]/pin[2L]) * xlim
+  else ylim <- (pin[2L]/pin[1L]) * ylim
+  dev.hold()
+  on.exit(dev.flush())
+  plot.window(xlim, ylim, "", asp = 1)
+  # get ready to plot
+  if (is.null(border[1])) ({
+    border <- rep(bg, length.out = nx)    
+  }) else ({
+    border <- rep(border, length.out = nx)    
+  })
+  if (!is.null(lty))
+    lty <- rep(NULL, length.out = nx)
+  angle <- rep(45, length.out = nx)
+  radius = seq(1, 0, by=-1/num)[1:num]
+  twopi <- -2 * pi
+  t2xy <- function(t, rad) ({
+    t2p <- twopi * t + init.angle * pi/180
+    list(x = rad * cos(t2p), y = rad * sin(t2p))
+  })
+  # plot colored segments
+  for (i in 1L:nx)
+    ({
+      n <- max(2, floor(200 * dx[i]))
+      P <- t2xy(seq.int(x[i], x[i + 1], length.out = n), rad=radius[1])
+      polygon(c(P$x, 0), c(P$y, 0), angle = angle[i], 
+              border = border[i], col = col[i], lty = lty[i])
+      P <- t2xy(mean(x[i + 0:1]), rad=radius[1])
+      lab <- labels[i]
+      if (!is.na(lab) && nzchar(lab)) ({
+        adjs = 0.5
+        if (P$x > 1e-08) adjs <- 0
+        if (P$x < -1e-08) adjs <- 1
+        lines(c(1, 1.05) * P$x, c(1, 1.05) * P$y)
+        text(1.1 * P$x, 1.1 * P$y, labels[i], xpd = TRUE, 
+             adj = adjs, cex=cex, col=labcol, ...)
+      })
+    })
+  # add title
+  title(main = main, ...)
+  # return color names
+  if (verbose)
+    col
+}
+
 
 # Create function which can be repeated for importing a column, sorting, and totalling data
 
@@ -379,6 +571,17 @@ climate_experience_data <- climate_experience_data %>%
 
 ## we need to convert data to factors on named response data
 climate_experience_data_named$Q67 <- factor(climate_experience_data_named$Q67, ordered = TRUE, levels = c("Less than £10,000 p/a", "£10,000 - £20,000 p/a", "£21,000 – £30,000 p/a", "£31,000 – £40,000 p/a", "£41,000 – £50,000 p/a", "£51,000 – £60, 000 p/a", "£61,000 - £70,000 p/a", "Over £70,000 p/a"))
+climate_experience_data$Q67
+
+climate_experience_data$Q67 <- climate_experience_data$Q67 %>%
+  mutate(
+    income_bin = case_when(
+      as.data.frame(climate_experience_data$Q67) > 6 ~ "high",
+      as.data.frame(climate_experience_data$Q67) < 3 ~ "low",
+      TRUE ~ "medium"
+    ) %>% factor(levels = c("low", "medium", "high"))
+  )
+
 
 climate_experience_data_named <- climate_experience_data_named %>%
   mutate(
@@ -689,9 +892,8 @@ ggsave(here("gits", "spotlight-report", "figures", "q62_country_born.png"), widt
 
 # Basic summary plot of Q6 responses
 title <- "Do you think the climate is changing?"
-q6_data <- qualtrics_process_single_multiple_choice(climate_experience_data_named$Q6)
-q6_levels = c("Don’t know", "Definitely not changing", "Probably not changing", "Probably changing", "Definitely changing")
-q6_data$response <- factor(q6_data$response, levels = q6_levels)
+# reverting to dataframe to use existing libraries with new haven() spss sav import of data
+q6_data <- qualtrics_process_single_multiple_choice(as.data.frame(as_factor(climate_experience_data$Q6)))
 q6_data_plot <- plot_horizontal_bar(q6_data)
 q6_data_plot <- q6_data_plot + labs(title = title, x = "", y = "") + theme(plot.title = element_text(size =12, hjust = 0))
 q6_data_plot 
