@@ -988,7 +988,7 @@ plot(q25_likert_table, centered=FALSE, wrap=20, text.size=3, ordered=TRUE, low.c
   theme(axis.text.y = element_text(size = 9))
 
 # save to png file for reports
-ggsave("figures/q25_likert.png", width = 20, height = 10, units = "cm")
+ggsave("figures/figure5.png", width = 20, height = 10, units = "cm")
 
 
 ## Figure 6. Worry about effects of climate change in places outside the UK ----------------------------------------
@@ -1025,42 +1025,11 @@ worry_elsewhere_ggpie <- ggplot(worry_elsewhere_data, aes(x = "", y = n, fill = 
   guides(fill = guide_legend(title = NULL))
 worry_elsewhere_ggpie
 
-ggsave("figures/Q28.png", width = 20, height = 10, units = "cm")
+ggsave("figures/figure6.png", width = 20, height = 10, units = "cm")
 
 
-## Figure 7. In what country were you born? ----------------------------------------
 
-## Generate quick choropleth map of the countries of non-UK born respondents--------
-
-q62_countries_table <- as.data.frame(table(climate_experience_data$Q62_1_TEXT))
-names(q62_countries_table) <- c("region", "value")
-
-# Using ggplot for this plot just for fun:
-
-map.world <- map_data("world") 
-map.world_joined <- left_join(map.world, q62_countries_table, by = c('region' = 'region'))
-map.world_joined <- map.world_joined %>% mutate(fill_flg = ifelse(is.na(value),F,T))
-head(map.world_joined)
-
-ggplot() +
-  geom_polygon(data = map.world_joined, aes(x = long, y = lat, group = group, fill = fill_flg)) +
-  scale_fill_manual(values = c("#CCCCCC","#e60000")) +
-  labs(title = 'In what country were you born?') +
-  theme(text = element_text(family = "Gill Sans", color = "#FFFFFF")
-        ,panel.background = element_rect(fill = "#444444")
-        ,plot.background = element_rect(fill = "#444444")
-        ,panel.grid = element_blank()
-        ,plot.title = element_text(size = 20)
-        ,plot.subtitle = element_text(size = 10)
-        ,axis.text = element_blank()
-        ,axis.title = element_blank()
-        ,axis.ticks = element_blank()
-        ,legend.position = "none"
-  )
-ggsave("./figures/q62_country_born.png", width = 20, height = 10, units = "cm")
-
-
-## Figure 8. Support for climate policies ----------------------------------------
+## Figure 7. Support for climate policies ----------------------------------------
 
 # Q34
 
@@ -1081,7 +1050,7 @@ plot(q34_likert_table, wrap=45, text.size=3, ordered=TRUE, low.color='#B18839', 
   theme(plot.title = element_text(lineheight = 0.9, size =12, hjust = 0)) +
   scale_y_continuous(labels = abs, limits = c(-115, 115))
 # save to png file for reports
-ggsave("figures/q34_likert.png", width = 20, height = 20, units = "cm")
+ggsave("figures/figure7.png", width = 20, height = 20, units = "cm")
 
 # Grouped likert plot using income_bin data
 q34_data <- select(climate_experience_data, Q34_ev:Q34_loss_and_damage, income_bin)
@@ -1115,7 +1084,7 @@ plot(q34_likert_table, wrap = 120, ordered=TRUE, low.color='#B18839', high.color
 ggsave("figures/q34_faceted_politics.png", width = 20, height = 25, units = "cm")
 
 
-## Figure 9. Conceptual awareness of climate justice ----------------------------------------
+## Figure 8. Conceptual awareness of climate justice ----------------------------------------
 
 # Q45 - simple bar chart
 
@@ -1126,10 +1095,10 @@ caption <- "Jeremy H. Kidwell and Charles Ogunbode,\nGraphic is CC-by-SA 4.0"
 q45_data <- qualtrics_process_single_multiple_choice(climate_experience_data_named$Q45)
 q45_plot <- plot_horizontal_bar(q45_data) + labs(title = title, caption = NULL, x = "", y = "")
 q45_plot
-ggsave("figures/q45.png", width = 20, height = 5, units = "cm")
+ggsave("figures/figure8.png", width = 20, height = 5, units = "cm")
 
 
-## Figure 10. Agreement with climate (in)justice statements  ----------------------------------------
+## Figure 9. Agreement with climate (in)justice statements  ----------------------------------------
 
 # TODO: Note to self: fix clipping on RH side
 
@@ -1149,15 +1118,15 @@ plot(q48_likert_table, wrap=40, text.size=3, ordered=TRUE, low.color='#B18839', 
   guides(fill = guide_legend(title = NULL)) + 
   theme_ipsum() +
   theme(axis.text.y = element_text(size = 9)) +
-  scale_y_continuous(labels = abs, limits = c(-110, 110))
+  scale_y_continuous(labels = abs, limits = c(-105, 115))
 
 # save to png file for reports
-ggsave("figures/q48_likert.png", width = 20, height = 18, units = "cm")
+ggsave("figures/figure9.png", width = 20, height = 18, units = "cm")
 
 # TODO: facet by ethnicity (in 3 bins), age, gender, political orientation bins
 
 
-## Figure 11. Participation in sustainability activities  ----------------------------------------
+## Figure 10. Participation in sustainability activities  ----------------------------------------
 
 # Q40
 title <- "Have you engaged in the following \nactivities in the past year?"
@@ -1176,10 +1145,10 @@ plot(q40_likert_table, wrap=25, text.size=3, ordered=TRUE, low.color='#B18839', 
   theme(plot.title = element_text(lineheight = 0.9, size =12, hjust = 0))
 
 # save to png file for reports
-ggsave("figures/q40_likert.png", width = 20, height = 20, units = "cm")
+ggsave("figures/figure10.png", width = 20, height = 20, units = "cm")
 
 
-## Figure 12. Individual sustainability behaviours ----------------------------------------
+## Figure 11. Individual sustainability behaviours ----------------------------------------
 
 # Q41 - likert style centered stacked bar viz:
 title <- "How often do you do the following?"
@@ -1197,7 +1166,7 @@ plot(q41_likert_table, wrap=25, text.size=3, ordered=TRUE, low.color='#B18839', 
   theme_ipsum() +
   theme(plot.title = element_text(lineheight = 0.9, size =12, hjust = 0))
 # save to png file for reports
-ggsave("figures/q41_likert.png", width = 20, height = 20, units = "cm")
+ggsave("figures/figure11.png", width = 20, height = 20, units = "cm")
 
 # Q41 - stacked percent bar viz:
 title <- "To what extent do you agree or disagree \nwith the following statements"
@@ -1259,7 +1228,7 @@ plot(q41_likert_table, wrap = 120, ordered=TRUE, low.color='#B18839', high.color
 ggsave("figures/q41_faceted_politics.png", width = 20, height = 25, units = "cm")
 
 
-## Figure 13. Barriers to action on climate change  ----------------------------------------
+## Figure 12. Barriers to action on climate change  ----------------------------------------
 
 # TODO - change to un-stacked horizontal bar chart, centre line to be inbetween not at all and a little, with grey/purple bars to the right stacked together
 
@@ -1274,14 +1243,12 @@ q42_likert_table <- q42_data %>%
                 factor, ordered = TRUE, levels = 1:3, labels=q42_levels)) %>% 
   as.data.frame %>% 
   likert
-plot(q42_likert_table, wrap=45, centered=FALSE, text.size=3, ordered=TRUE, low.color='#B18839', high.color='#590048') + 
+plot(q42_likert_table, center=1.5, centered=TRUE, wrap=45, text.size=3, ordered=TRUE, low.color='#B18839', high.color='#590048') + 
   labs(title = title, y="") + 
   guides(fill = guide_legend(title = NULL)) + 
   theme_ipsum() +
   theme(plot.title = element_text(lineheight = 0.9, size =12, hjust = 0)) +
-  scale_y_continuous(labels = abs, limits = c(-5, 110))
+  scale_y_continuous(labels = abs, limits = c(-110, 115))
 
 # save to png file for reports
-ggsave("figures/q42_likert.png", width = 20, height = 15, units = "cm")
-
-
+ggsave("figures/figure12.png", width = 20, height = 15, units = "cm")
