@@ -1,6 +1,6 @@
 # Spotlight Report Analysis Code (2022)
 
-This repository contains R code, documentation and data related to a survey of BAME UK residents on their experience of climate change. This code and underlying data subsets have been used to generate visualisations for the Spotlight report.
+This repository contains R code, documentation and data related to a survey of non-white ethnic minority UK residents on their experience of climate change. This code and [underlying data](https://zenodo.org/records/11130201) have been used to generate visualisations for the [Spotlight report](https://zenodo.org/records/11130504).
 
 
 # About the code and data
