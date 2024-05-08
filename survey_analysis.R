@@ -571,28 +571,6 @@ climate_experience_data <- climate_experience_data %>%
     ) %>% factor(levels = c("low", "medium", "high"))
   )
 
-## we need to convert data to factors on named response data
-climate_experience_data_named$Q67 <- factor(climate_experience_data_named$Q67, ordered = TRUE, levels = c("Less than £10,000 p/a", "£10,000 - £20,000 p/a", "£21,000 – £30,000 p/a", "£31,000 – £40,000 p/a", "£41,000 – £50,000 p/a", "£51,000 – £60, 000 p/a", "£61,000 - £70,000 p/a", "Over £70,000 p/a"))
-climate_experience_data$Q67
-
-climate_experience_data$Q67 <- climate_experience_data$Q67 %>%
-  mutate(
-    income_bin = case_when(
-      as.data.frame(climate_experience_data$Q67) > 6 ~ "high",
-      as.data.frame(climate_experience_data$Q67) < 3 ~ "low",
-      TRUE ~ "medium"
-    ) %>% factor(levels = c("low", "medium", "high"))
-  )
-
-
-climate_experience_data_named <- climate_experience_data_named %>%
-  mutate(
-    income_bin = case_when(
-      as.integer(factor(climate_experience_data_named$Q67)) > 6 ~ "high",
-      as.integer(factor(climate_experience_data_named$Q67)) < 3 ~ "low",
-      TRUE ~ "medium"
-    ) %>% factor(levels = c("low", "medium", "high"))
-  )
 
 ## Q8 subsetting based on confidence on views
 climate_experience_data <- climate_experience_data %>%
@@ -604,17 +582,10 @@ climate_experience_data <- climate_experience_data %>%
     ) %>% factor(levels = c("low", "medium", "high"))
   )
 
-climate_experience_data_named <- climate_experience_data_named %>%
-  mutate(
-    Q8_bin = case_when(
-      Q8_1 > mean(Q8_1) + sd(Q8_1) ~ "high",
-      Q8_1 < mean(Q8_1) - sd(Q8_1) ~ "low",
-      TRUE ~ "medium"
-    ) %>% factor(levels = c("low", "medium", "high"))
-  )
 
 # Q53 subsetting based on Political LR orientation:
 # Generate low/med/high bins based on Mean and SD
+# Note: this column is embargoed and will be released later in 2025
 climate_experience_data <- climate_experience_data %>%
   mutate(
     Q53_bin = case_when(
@@ -624,14 +595,6 @@ climate_experience_data <- climate_experience_data %>%
     ) %>% factor(levels = c("low", "medium", "high"))
   )
 
-climate_experience_data_named <- climate_experience_data_named %>%
-  mutate(
-    Q53_bin = case_when(
-      Q53_1 > mean(Q53_1) + sd(Q53_1) ~ "high",
-      Q53_1 < mean(Q53_1) - sd(Q53_1) ~ "low",
-      TRUE ~ "medium"
-    ) %>% factor(levels = c("low", "medium", "high"))
-  )
 
 ## Q57 subsetting based on Religiosity
 climate_experience_data <- climate_experience_data %>%
@@ -643,14 +606,6 @@ climate_experience_data <- climate_experience_data %>%
     ) %>% factor(levels = c("low", "medium", "high"))
   )
 
-climate_experience_data_named <- climate_experience_data_named %>%
-  mutate(
-    Q57_bin = case_when(
-      Q57_1 > mean(Q57_1) + sd(Q57_1) ~ "high",
-      Q57_1 < mean(Q57_1) - sd(Q57_1) ~ "low",
-      TRUE ~ "medium"
-    ) %>% factor(levels = c("low", "medium", "high"))
-  )
 
 ## Subsetting based on Spirituality
 # Calculate overall mean nature-relatedness score based on six questions:
@@ -666,19 +621,8 @@ climate_experience_data <- climate_experience_data %>%
     ) %>% factor(levels = c("low", "medium", "high"))
   )
 
-# TODO: fix issues with rowMeans by converting to factors, code below still incomplete 
-climate_experience_data_named$Q51_remote_vacation <- factor(climate_experience_data_named$Q51_remote_vacation, ordered = TRUE, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-climate_experience_data_named$Q51_impact_awareness <- factor(climate_experience_data_named$Q51_impact_awareness, ordered = TRUE, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-climate_experience_data_named$Q51_spirituality <- factor(climate_experience_data_named$Q51_spirituality, ordered = TRUE, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-climate_experience_data_named$Q51_wildlife <- factor(climate_experience_data_named$Q51_wildlife, ordered = TRUE, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-climate_experience_data_named$Q51_relationship <- factor(climate_experience_data_named$Q51_relationship, ordered = TRUE, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-climate_experience_data_named$Q51_heritage <- factor(climate_experience_data_named$Q51_heritage, ordered = TRUE, levels = c("Strongly disagree", "Somewhat disagree", "Neither agree nor disagree", "Somewhat agree", "Strongly agree"))
-
-climate_experience_data_named$Q51_score <- rowMeans(as.integer(factor(select(climate_experience_data_named, Q51_remote_vacation:Q51_heritage))))
-
 # Calculate overall mean spirituality score based on six questions:
 climate_experience_data$Q52_score <- rowMeans(select(climate_experience_data, Q52a_1:Q52f_1))
-climate_experience_data_named$Q52_score <- rowMeans(select(climate_experience_data_named, Q52a_1:Q52f_1))
 
 # Create low/med/high bins based on Mean and +1/-1 Standard Deviation
 climate_experience_data <- climate_experience_data %>%
@@ -690,22 +634,15 @@ climate_experience_data <- climate_experience_data %>%
     ) %>% factor(levels = c("low", "medium", "high"))
   )
 
-climate_experience_data_named <- climate_experience_data_named %>%
-  mutate(
-    Q52_bin = case_when(
-      Q52_score > mean(Q52_score) + sd(Q52_score) ~ "high",
-      Q52_score < mean(Q52_score) - sd(Q52_score) ~ "low",
-      TRUE ~ "medium"
-    ) %>% factor(levels = c("low", "medium", "high"))
-  )
+# Processing geospatial data ----------------------------------------------------------
 
+# Note: this data has been embargoed for the sake of respondent confidentiality and will not likely be included in any future releases
 
 # Generate new column with simplified postcode area data (only initial alpha characters)
-climate_experience_data_named$postcode_area <- str_to_upper(str_extract(climate_experience_data_named$Q68, "^([A-Z,a-z]){1,}"))
-climate_experience_data$postcode_area <- str_to_upper(str_extract(climate_experience_data_named$Q68, "^([A-Z,a-z]){1,}"))
+climate_experience_data$postcode_area <- str_to_upper(str_extract(climate_experience_data$Q68, "^([A-Z,a-z]){1,}"))
 
 # Add identifier flagging London residents
-climate_experience_data_named <- climate_experience_data_named %>%
+climate_experience_data <- climate_experience_data %>%
   rowwise() %>%
   mutate(
     isLondon = case_when(
@@ -860,7 +797,7 @@ climate_experience_data$Q62_region <- countrycode(climate_experience_data$Q62_is
 
 ## Generate choropleth map of the countries of non-UK born respondents--------
 
-q62_countries_table <- as.data.frame(table(climate_experience_data_named$country_name))
+q62_countries_table <- as.data.frame(table(climate_experience_data$country_name))
 names(q62_countries_table) <- c("region", "value")
 
 # Using ggplot for this plot just for fun:
