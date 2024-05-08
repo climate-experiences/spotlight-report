@@ -540,10 +540,7 @@ clean_postcodes <- function(pcodes) {
 
 # Load data ---------------------------------------------------------------
 
-# TODO: upload non-embargoed data to zenodo and change code below
-# TODO: drop QATTN1b, QATTN2
-
-# download local authorities data for whole UK - level 1 (least detailed)
+# download spotlight dataset from zenodo
 if (file.exists(here("gits", "spotlight-report", "data", "climate_experience_data.sav")) == FALSE) {
   download.file("https://zenodo.org/records/11130201/files/climate_experience_data.sav", destfile = here("gits", "spotlight-report", "data", "climate_experience_data.sav"))}
 climate_experience_data <- read_sav(here("gits", "spotlight-report", "data", "climate_experience_data.sav"))
