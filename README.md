@@ -2,6 +2,11 @@
 
 This repository contains R code, documentation and data related to a survey of non-white ethnic minority UK residents on their experience of climate change. This code and [underlying data](https://zenodo.org/records/11130201) have been used to generate visualisations for the [Spotlight report](https://zenodo.org/records/11130504).
 
+Because this codebase is written as reproducible research (more on this below) the R code will automatically download the dataset from our zenodo repository. You can also view this and view other details about the underlying data by clicking here: [https://zenodo.org/records/11130201](https://zenodo.org/records/11130201). 
+
+Users who are new to programmatic data science techniques using R, may also want to have a look at my open-access textbook, "Hacking Religion" which provides a walkthrough and explanation of coding in R using this dataset in chapter 2. You can view the code for the textbook [here](https://github.com/kidwellj/hacking_religion_textbook/blob/master/hacking_religion/chapter_2.qmd) and view a [beta version of chapter 2 online here](https://kidwellj.github.io/hacking_religion_textbook/chapter_2.html).
+
+
 
 # About the code and data
 
